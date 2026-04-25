@@ -1,0 +1,334 @@
+# Lab 06 – DNS Reconnaissance with nslookup, dig, and whois
+
+## Objective
+
+In the previous five labs, I was looking at devices on my own local
+network. I was finding machines, knocking on ports, and identifying
+services. Everything was close — machines I could touch, on a network
+I controlled.
+
+This lab went somewhere different. Instead of looking inward at my
+own network, I started looking outward — at the internet itself. I
+wanted to understand how names like google.com connect to actual
+addresses, who owns those names, and what anyone can find out just
+by asking the right questions.
+
+The tools in this lab do not scan anything. They ask questions and
+listen to the answers.
+
+---
+
+## Environment
+
+- Machine 1: Kali Linux (Dell Latitude 7410, VMware)
+- Machine 2: Linux Mint (Asus laptop)
+- Tools used: nslookup, dig, whois
+- Domains used: google.com, facebook.com, github.com, bbc.com,
+  linkedin.com
+
+---
+
+## What Is DNS? (The Simple Version)
+
+Before running any command, I want to explain what DNS is, because
+without understanding it, the results are just numbers.
+
+When someone types google.com into a browser, the computer does not
+actually know where google.com lives. Computers only understand numbers
+— things like 172.217.194.138. DNS is the system that translates the
+name into the number.
+
+Think of it like a phone book. A person's name is google.com. Their
+phone number is 172.217.194.138. DNS is what connects one to the other.
+
+Every single time a device loads a website or sends an email, a DNS
+lookup happens first — quietly, in the background, before anything
+else. Most people never see it. But it is always there.
+
+---
+
+## What I Did — Step by Step
+
+### Step 1 — I used nslookup to ask about five websites
+
+nslookup is the simplest of the three tools. I type a domain name,
+and it asks my DNS server to translate that name into an IP address
+and shows me the answer.
+
+I ran it on both machines — Kali and Linux Mint — for all five domains.
+
+Here is what came back on Kali first:
+
+Server:  10.218.101.182
+Address: 10.218.101.182#53
+
+Kali sent its question to 10.218.101.182 — my mobile hotspot gateway.
+The #53 at the end means port 53, which is the port DNS always uses.
+Every DNS server in the world listens on port 53. I already know this
+from the earlier labs where port 53 appeared in scans.
+
+Then I ran the same commands on Linux Mint and got something different
+in the server line:
+
+Server:  127.0.0.53
+Address: 127.0.0.53#53
+
+Linux Mint showed 127.0.0.53 instead of the gateway. This confused me
+at first. 127.0.0.53 is not an external server — it is the machine
+talking to itself. Linux Mint has a built-in DNS helper called
+systemd-resolved that sits between the application and the real DNS
+server. When Mint needs a DNS answer, it asks this local helper first.
+The helper then goes to the gateway, gets the answer, and brings it
+back. Same result, one extra step in the middle.
+
+The results from both machines for all five domains:
+
+facebook.com  → 157.240.15.35
+github.com    → 20.205.243.166
+bbc.com       → 151.101.128.81 (plus three more addresses)
+linkedin.com  → 150.171.22.12
+google.com    → 172.217.194.138 (plus five more addresses)
+
+Both machines returned exactly the same addresses for every domain.
+That matching result matters — I will come back to why when I get to
+the dig section.
+
+### A mistake I made on Linux Mint
+
+When I went to type nslookup for linkedin.com on Linux Mint, I
+accidentally typed this:
+
+shohail@shohail-X542UA:~$ nslooiup linkedin.com
+Command 'nslooiup' not found
+
+The terminal immediately told me the command did not exist and suggested
+the correct spelling. I typed it correctly the next time and it worked.
+
+This happens. The terminal does not guess what someone means — it reads
+exactly what is typed, letter by letter. A single wrong character and
+the command does not run. The right response is to read the error,
+fix the typo, and try again. Nothing breaks. Nothing is lost.
+
+---
+
+### Step 2 — I used dig to get more detail
+
+dig does the same job as nslookup but shows much more of what is
+happening underneath. Instead of just the answer, it shows the full
+structure of the DNS response — how long it took, how long the answer
+is valid, which server responded, and how big the response was.
+
+I ran dig google.com on both machines.
+
+**Kali:**
+
+google.com.   152   IN   A   172.217.194.138
+google.com.   152   IN   A   172.217.194.139
+google.com.   152   IN   A   172.217.194.101
+google.com.   152   IN   A   172.217.194.113
+google.com.   152   IN   A   172.217.194.102
+google.com.   152   IN   A   172.217.194.100
+Query time: 4 msec
+Server: 10.218.101.182#53
+
+**Linux Mint:**
+
+google.com.   91    IN   A   172.217.194.100
+google.com.   91    IN   A   172.217.194.138
+google.com.   91    IN   A   172.217.194.139
+google.com.   91    IN   A   172.217.194.101
+google.com.   91    IN   A   172.217.194.113
+google.com.   91    IN   A   172.217.194.102
+Query time: 4 msec
+Server: 127.0.0.53#53
+
+Same six IP addresses on both machines. The number before IN A is the
+TTL — Time To Live. It counts down in seconds and tells the machine
+how long to remember this answer before asking again. Kali showed 152
+and Mint showed 91 because the two machines asked at slightly different
+moments. The countdown had already ticked further on one than the other.
+Not a problem — just timing.
+
+**dig google.com +short**
+
+This strips everything away and prints only the addresses. Useful when
+the full output is not needed.
+
+Kali
+172.217.194.100
+172.217.194.113
+172.217.194.139
+Linux Mint
+172.217.194.102
+172.217.194.101
+172.217.194.138
+
+Same addresses, different order. Google has many servers around the
+world and rotates which ones it lists first each time someone asks.
+This spreads the traffic so no single server gets too busy. It is
+called load balancing.
+
+**dig google.com MX**
+
+MX records show which mail servers handle email for a domain.
+
+google.com.   180   IN   MX   10 smtp.google.com.
+
+Both machines returned the same result. Email for google.com goes
+through smtp.google.com. The number 10 is a priority — if there were
+multiple mail servers listed, the one with the lowest number would
+be tried first.
+
+**dig google.com @8.8.8.8 — asking Google's own DNS directly**
+
+This command skips my local DNS server completely and sends the question
+directly to 8.8.8.8, which is Google's public DNS server. It is a way
+to bypass the router and go straight to a known, trusted source.
+
+Kali via 8.8.8.8
+google.com.   205   IN   A   172.217.194.139
+(same six addresses)
+Query time: 84 msec
+
+Linux Mint via 8.8.8.8
+google.com.   158   IN   A   172.217.194.113
+(same six addresses)
+Query time: 72 msec
+
+Both queries through 8.8.8.8 took around 80 milliseconds. The same
+query through the local gateway took only 4 milliseconds. The gateway
+is physically close — just a few meters away in the same room. Google's
+DNS server at 8.8.8.8 is somewhere across the world. Distance adds time.
+
+The more important thing here is that the addresses matched. Both the
+local gateway and Google's public DNS returned the exact same IP
+addresses for google.com. If they had returned different addresses,
+that would mean something was interfering with DNS — redirecting traffic
+to a fake address instead of the real one. That attack has a name: DNS
+hijacking. The matching results here confirmed it was not happening.
+
+---
+
+### Step 3 — I used whois to find out who owns google.com
+
+whois queries a registration database and returns information about
+who registered a domain, when they registered it, when it expires,
+and which name servers it uses. This information is public — anyone
+can ask.
+
+I ran whois google.com on both machines and got the same output.
+
+Registrant Organization: Google LLC
+Registrant Country: US
+Creation Date: 1997-09-15
+Expiry Date:   2028-09-14
+Registrar: MarkMonitor Inc.
+Name Servers: ns1.google.com through ns4.google.com
+DNSSEC: unsigned
+
+A few things from this are worth understanding.
+
+google.com was registered in 1997 — nearly thirty years ago. This
+matters in security work because attackers often register new domains
+that look like real ones — something like g00gle.com or googIe.com
+with a capital I instead of a lowercase L. A domain registered last
+week claiming to be a major company is suspicious. A domain registered
+in 1997 is not.
+
+MarkMonitor is a registrar that specialises in protecting well-known
+brand names. Large companies use them specifically because they add
+extra layers of protection against domain theft.
+
+The domain status lines — clientDeleteProhibited,
+serverTransferProhibited, and others — are locks. They prevent the
+domain from being deleted, transferred, or modified without going
+through extra verification steps. High-value domains like google.com
+carry all of these locks.
+
+DNSSEC unsigned is interesting. DNSSEC is a security extension that
+adds a digital signature to DNS responses, making it harder to tamper
+with them. Even Google's own domain does not use it on the .com record.
+This is a reminder that even large, well-resourced organisations do not
+always implement every available security measure.
+
+---
+
+## What the Two Machines Showed Together
+
+Running everything on both Kali and Linux Mint and comparing the results
+was more useful than running on one machine alone.
+
+The DNS server addresses looked different — Kali used the gateway,
+Mint used its local resolver. But every answer they came back with was
+identical. Same IP addresses. Same mail server. Same whois data.
+
+That consistency is what a healthy network looks like. If the two
+machines had returned different addresses for the same domain, that
+would have been the first sign that something was wrong.
+
+---
+
+## What I Learned
+
+DNS is running silently behind everything that happens on the internet.
+Every website visit, every email, every app that connects to a server —
+all of it starts with a DNS lookup that most people never see.
+
+The tools in this lab — nslookup, dig, whois — are not complex. But
+what they reveal is. In a real investigation, these same tools pointed
+at an unfamiliar domain can reveal whether a website is impersonating
+a real one, whether email is being redirected, whether a domain was
+registered recently and suspiciously, and whether the DNS server itself
+is giving honest answers.
+
+None of those problems appeared here because well-known public domains
+were used. The value of running these commands on safe, known targets
+first is that the results look like what normal, correct output should
+look like. When something abnormal appears in the future, it will stand
+out because normal is now familiar.
+
+---
+
+## Skills Practised
+
+- Using nslookup to resolve domain names on two different machines
+- Understanding why two machines showed different DNS server addresses
+  but identical results
+- Using dig to read the full structure of a DNS response including
+  TTL, query time, and server identity
+- Using dig +short for quick lookups
+- Using dig MX to find mail servers for a domain
+- Using dig @8.8.8.8 to bypass local DNS and check for manipulation
+- Using whois to find registration details for a domain
+- Recognising what consistent DNS results across two machines confirms
+
+---
+
+## How This Connects to the Previous Labs
+
+The first five labs looked at what was happening on the local network —
+which machines were alive, which ports were open, which services were
+running. All of that was close and visible.
+
+This lab looked further out. DNS sits between every device and the
+internet. Understanding it is understanding how traffic finds its way
+anywhere at all. The port 53 that appeared in DNS queries here is the
+same port 53 that would show up if a DNS service were running on a
+local machine being scanned. Everything connects.
+
+---
+
+## What Comes Next
+
+The next practice turns the same kind of questioning back onto the
+local machine itself. netstat and network self-audit asks: which
+services on this machine are currently listening for connections?
+Which ports are open from the inside, not just from the outside?
+
+That inside view is the part that the earlier Nmap scans could only
+see partially. Seeing it from within the machine completes the picture.
+
+---
+
+*Lab 06 · DNS Reconnaissance · April 2026 *
+
