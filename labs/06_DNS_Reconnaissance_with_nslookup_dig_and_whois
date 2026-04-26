@@ -108,6 +108,34 @@ This happens. The terminal does not guess what someone means — it reads
 exactly what is typed, letter by letter. A single wrong character and
 the command does not run. The right response is to read the error,
 fix the typo, and try again. Nothing breaks. Nothing is lost.
+---
+
+Every nslookup result on both machines carried this line above the answer:
+
+    Non-authoritative answer:
+
+This line appears because my router did not find the answer itself. It
+went and asked someone else — my ISP's DNS server further up the chain —
+and then passed that answer back to me. The router is relaying information
+it received from elsewhere, not answering from its own knowledge. That
+is what non-authoritative means. An authoritative answer would only come
+from the DNS server that actually owns and manages that domain — Google's
+own name servers for google.com, for example. Everything else in between
+is just passing the answer along.
+
+Several domains also returned two types of addresses instead of one.
+Facebook, BBC, LinkedIn, and Google all came back with both an address
+starting with numbers like 157.240.15.35 and a longer address starting
+with something like 2a03:2880 or 2404:6800. The shorter one is an IPv4
+address — the older, more common format that most of the internet still
+runs on. The longer one is an IPv6 address — a newer format introduced
+because the world was running out of IPv4 addresses. There are only
+about four billion possible IPv4 addresses, and they are nearly all
+taken. IPv6 has so many possible addresses that running out is not a
+practical concern. Domains that return both types support both formats
+and will connect using whichever one the requesting device prefers.
+GitHub returned only an IPv4 address, which means it either does not
+yet support IPv6 or was not advertising it at the time of the query.
 
 ---
 
