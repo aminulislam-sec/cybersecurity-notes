@@ -465,6 +465,7 @@ by encrypting the domain name too, but it is not yet widely supported.
 ## Commands Used
 
 ```bash
+
 # Check interface names before capturing
 ip a
 
@@ -476,6 +477,7 @@ tshark -i eth0 -f "port 53" -c 10
 
 # Open Wireshark GUI (no sudo needed after group setup)
 wireshark
+
 ```
 
 Display filters used inside Wireshark:
@@ -543,3 +545,35 @@ content but leaves the destination visible. Knowing a port is open is one
 thing. Knowing what it carries and what it exposes in the process is
 the next step.
 
+
+## Follow-up: Unidentified IP 103.174.51.65
+
+During Project 3, one IP address appeared only once in the capture
+statistics and could not be identified from the session data alone. It was
+noted as an open finding and investigated afterward.
+
+Four commands were run on Kali to identify it:
+
+```bash
+
+whois 103.174.51.65
+dig -x 103.174.51.65
+curl https://ipinfo.io/103.174.51.65
+nmap -sV -p 80,443 103.174.51.65
+
+```
+
+The results identified the address as belonging to Flarezen Ltd., a
+Bangladeshi internet service provider registered with APNIC and located in
+Dhaka. The reverse DNS lookup returned no configured hostname, which is
+normal for ISP infrastructure. The ipinfo.io query confirmed the
+organisation as AS147181, Kafrul, Dhaka Division, Bangladesh. The Nmap
+scan found both port 80 and 443 filtered — no public web server running,
+consistent with a routing or backbone node rather than a hosted service.
+
+The address most likely belongs to infrastructure sitting between the local
+network and the wider internet. A single packet passed through or
+originated from that node during the capture session. There is nothing
+unexpected here.
+
+Finding status: closed.
