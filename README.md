@@ -16,8 +16,8 @@ I am building hands-on cybersecurity knowledge with the goal of becoming a cyber
 
 | Month | Topic | Status |
 |-------|-------|--------|
-| Month 1 | Networking Fundamentals | In Progress |
-| Month 2 | Linux CLI Mastery | Upcoming |
+| Month 1 | Networking Fundamentals | Complete |
+| Month 2 | Linux CLI Mastery | In Progress |
 | Month 3 | Python for Security | Upcoming |
 
 ---
@@ -26,7 +26,7 @@ I am building hands-on cybersecurity knowledge with the goal of becoming a cyber
 
 - Kali Linux on Dell Latitude 7410 (VMware Workstation)
 - Metasploitable2 as lab target
-- Linux Mint on Asus laptop for daily Linux practice
+- Linux Mint on an Asus laptop for daily Linux practice
 
 ---
 
