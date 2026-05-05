@@ -165,7 +165,7 @@ machine is not saying open or closed — it is simply not answering.
 
 ### What I eventually understood about Linux Mint
 
-I will be honest. When the first scan came back with nothing, I thought
+When the first scan came back with nothing, I thought
 I had done something wrong. When the second scan came back the same way,
 I started questioning whether Nmap was working correctly. By the time I
 finished the fifth scan and got the same result, I finally accepted what
