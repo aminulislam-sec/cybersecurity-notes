@@ -48,8 +48,11 @@ nmap 10.218.101.121
 ```
 
 PORT     STATE SERVICE
+
 902/tcp  open  iss-realsecure
+
 912/tcp  open  apex-mesh
+
 5357/tcp open  wsdapi
 
 Still there. Good. Now I could start asking what they actually were.
@@ -67,9 +70,13 @@ version it is running.
 This is what came back:
 
 PORT     STATE SERVICE         VERSION
+
 902/tcp  open  ssl/vmware-auth VMware Authentication Daemon 1.10 (Uses VNC, SOAP)
+
 912/tcp  open  vmware-auth     VMware Authentication Daemon 1.0 (Uses VNC, SOAP)
+
 5357/tcp open  http            Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+
 Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
 
 Now the ports had names. Real names. Port 902 and 912 were both running
@@ -94,7 +101,9 @@ a short conversation with whoever answers.
 This is what the scripts added:
 
 5357/tcp open  http                  Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+
 |_http-title: Service Unavailable
+
 |_http-server-header: Microsoft-HTTPAPI/2.0
 
 The script tried to access port 5357 like a web browser would. The
@@ -126,8 +135,11 @@ Safe means the scripts will not do anything harmful or disruptive — they
 only observe and report. Here is what came back that was new:
 
 902/tcp open  iss-realsecure
+
 |_banner: 220 VMware Authentication Daemon Version 1.10: SSL Required,...
+
 912/tcp open  apex-mesh
+
 |_banner: 220 VMware Authentication Daemon Version 1.0, ServerDaemonPr...
 
 The scripts grabbed the banners from ports 902 and 912. A banner is a
@@ -139,7 +151,9 @@ Daemon, versions 1.10 and 1.0.
 There was also this result from the scripts:
 
 | dns-blacklist:
+
 |   SPAM
+
 |     list.quorum.to - SPAM
 
 One of the scripts checked whether the IP address appeared on any
@@ -209,7 +223,9 @@ Windows machine:
 **Which services are running?**
 
 Port 902 — VMware Authentication Daemon 1.10, encrypted with SSL.
+
 Port 912 — VMware Authentication Daemon 1.0, no encryption.
+
 Port 5357 — Microsoft HTTPAPI 2.0, used for Windows network discovery.
 
 **Why are they running?**
@@ -256,7 +272,7 @@ collection of terminal output.
 - Using -sV to detect service versions beyond just port states
 - Using -sC to run default scripts and extract extra information
 - Focusing scans on specific ports with -p for cleaner results
-- Using --script=default,safe to grab banners and deeper service details
+- Using --script=default, safe to grab banners and deeper service details
 - Reading and interpreting banner output from live services
 - Connecting open ports to the software installed on the target machine
 - Applying analyst thinking to service-level results
@@ -283,7 +299,7 @@ beginning of the question.
 Now that I know what services are running and which versions they are,
 the next step is asking whether those versions have any known weaknesses.
 
-That shift — from "what is running" to "what risks does that carry" —
+Now, I am thinking of the shift — from "what is running" to "what risks does that carry" —
 is the foundation of how real vulnerability assessment works.
 
 ---
