@@ -47,13 +47,13 @@ the three ports were still open.
 nmap 10.218.101.121
 ```
 
-PORT     STATE SERVICE
+PORT       STATE   SERVICE
 
-902/tcp  open  iss-realsecure
+902/tcp    open    iss-realsecure
 
-912/tcp  open  apex-mesh
+912/tcp    open    apex-mesh
 
-5357/tcp open  wsdapi
+5357/tcp   open    wsdapi
 
 Still there. Good. Now I could start asking what they actually were.
 
@@ -69,13 +69,13 @@ version it is running.
 
 This is what came back:
 
-PORT     STATE SERVICE         VERSION
+PORT       STATE     SERVICE           VERSION
 
-902/tcp  open  ssl/vmware-auth VMware Authentication Daemon 1.10 (Uses VNC, SOAP)
+902/tcp    open      ssl/vmware-auth   VMware Authentication Daemon 1.10 (Uses VNC, SOAP)
 
-912/tcp  open  vmware-auth     VMware Authentication Daemon 1.0 (Uses VNC, SOAP)
+912/tcp    open      vmware-auth       VMware Authentication Daemon 1.0 (Uses VNC, SOAP)
 
-5357/tcp open  http            Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+5357/tcp   open      http              Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
 
 Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
 
