@@ -412,3 +412,93 @@ is structured, how many steps it takes, and where those steps lead.
 The `* * *` hops in this lab are the same concept as the filtered ports in
 Lab 03. In both cases, something is there but is not answering. Learning to
 read silence correctly is one of the more important habits in this kind of work.
+
+---
+
+## Follow-up: Linux Mint Traceroute (Later Session)
+
+During the original lab session, the traceroute command was not run on
+Linux Mint. I ran it in a follow-up session to complete the comparison.
+
+The network addresses had changed by this point because DHCP assigned
+new values when the machines reconnected. This is normal behaviour and
+expected.
+
+```
+Current session addresses:
+Mint IP:   192.168.254.76
+Kali IP:   192.168.254.36
+Gateway:   192.168.254.228
+```
+
+### Mint ping results (this session)
+
+Localhost and gateway both responded cleanly with 0% packet loss.
+
+The first Google ping run showed 25% packet loss — one packet out of four
+did not come back. The second run with five packets showed 0% packet loss
+and consistent times around 38ms. The first run's loss was likely a brief
+wireless fluctuation rather than a network problem. Running the test twice
+and comparing is good practice.
+
+```
+ping -c 4 google.com  →  25% packet loss, avg 54ms  (first run)
+ping -c 5 google.com  →  0% packet loss, avg 38ms   (second run)
+```
+
+Google's server this session was `maa05s12-in-f14.1e100.net` — a server
+in Chennai, India, rather than Bangkok or Pune from previous sessions.
+Google routes each connection to whichever server is available at that
+moment. The address changes but the behaviour is the same.
+
+### Mint traceroute to Google
+
+```
+traceroute to google.com (142.250.67.46), 30 hops max
+ 1  _gateway (192.168.254.228)   2.530 ms
+ 2  * * *
+ 3  10.32.202.1                 26.083 ms
+ 4  * * *
+ 5  10.99.249.126               36.256 ms
+ 6  10.99.249.46                42.020 ms
+ 7  123.49.50.33                32.633 ms
+ 8  123.49.13.28                26.201 ms
+ 9  * * *
+10  142.251.201.26              40.174 ms
+11  142.251.70.211              45.874 ms
+12  142.251.55.217              45.714 ms
+13  pnmaaa-bb-in-f14.1e100.net (142.250.67.46)  40.693 ms
+```
+
+Destination reached in 13 hops. Mint's path was shorter than Kali's
+22-hop result from the original session. This does not mean Mint found a
+shorter route — it means Google's load balancing sent the connection to
+a closer server this time (Chennai vs Hong Kong).
+
+### Comparing Mint and Kali paths this session
+
+Both machines followed the same ISP backbone in the same order:
+gateway → ISP internal routers (10.32.x and 10.99.x) → ISP backbone
+(123.49.x) → Google infrastructure (142.251.x) → destination.
+
+The ISP routing infrastructure does not change between sessions even when
+local IP addresses do. This confirms that the path your packets take is
+determined by your ISP and the destination server, not by your local
+network configuration.
+
+Kali reached a Hong Kong server (hkg12s32) in 22 hops at around 63ms.
+Mint reached a Chennai server (maa05s12) in 13 hops at around 38ms.
+Different servers, different hop counts, both reached through the same
+ISP backbone.
+
+### The 25% packet loss on Mint — first ping run
+
+One packet out of four was dropped on the first ping attempt to Google.
+The second run of five packets showed no loss at all. This is the correct
+way to interpret such a result — a single dropped packet on a wireless
+connection during a brief test is not evidence of a network problem. It
+is evidence of normal wireless behaviour. Running the test a second time
+and getting a clean result confirms the connection is healthy.
+
+A persistent packet loss — say 20% or higher across multiple consecutive
+runs — would be worth investigating. One dropped packet in one run is not.
